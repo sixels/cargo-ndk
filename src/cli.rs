@@ -5,9 +5,9 @@ use std::{
     fmt::Display,
     fs,
     io::{self, ErrorKind},
+    panic,
     path::{Path, PathBuf},
     time::Instant,
-    panic,
 };
 
 // Can be removed when MSRV is bumped to 1.81+.
@@ -30,7 +30,7 @@ struct ArgsEnv {
     #[options(help = "show help information")]
     help: bool,
 
-    #[options(long = "version", help = "print version")]
+    #[options(no_short, long = "version", help = "print version")]
     version: bool,
 
     #[options(help = "platform (also known as API level)")]
@@ -738,7 +738,7 @@ pub fn run(args: Vec<String>) -> anyhow::Result<()> {
                 let Some(file) = artifact
                     .filenames
                     .iter()
-                    .find(|name| name.extension() == Some("so"))
+                    .find(|name| name.extension() == Some("so") || name.extension() == Some("a"))
                 else {
                     // This should never happen because we filter for cdylib outputs above but you
                     // never know... and it still feels better than just unwrapping
@@ -805,7 +805,11 @@ pub fn run(args: Vec<String>) -> anyhow::Result<()> {
 
 /// Check whether the produced artifact is of use to use (has to be of type `cdylib`).
 fn artifact_is_cdylib(artifact: &Artifact) -> bool {
-    artifact.target.crate_types.iter().any(|ty| ty == "cdylib")
+    artifact
+        .target
+        .crate_types
+        .iter()
+        .any(|ty| ty == "cdylib" || ty == "staticlib")
 }
 
 // Check if the source file has changed and should be copied over to the destination path.
