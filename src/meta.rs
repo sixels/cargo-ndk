@@ -74,6 +74,8 @@ impl Default for Config {
 
 #[derive(Debug, Deserialize, Default, Clone)]
 pub enum Target {
+    #[serde(rename = "arm")]
+    Armeabi,
     #[serde(rename = "armeabi-v7a")]
     ArmeabiV7a,
     #[default]
@@ -91,11 +93,13 @@ impl FromStr for Target {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
             // match android style architectures
+            "arm" => Target::Armeabi,
             "armeabi-v7a" => Target::ArmeabiV7a,
             "arm64-v8a" => Target::Arm64V8a,
             "x86" => Target::X86,
             "x86_64" => Target::X86_64,
             // match rust triple architectures
+            "arm-linux-androideabi" => Target::Armeabi,
             "armv7-linux-androideabi" => Target::ArmeabiV7a,
             "aarch64-linux-android" => Target::Arm64V8a,
             "i686-linux-android" => Target::X86,
@@ -108,6 +112,7 @@ impl FromStr for Target {
 impl Display for Target {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(match self {
+            Target::Armeabi => "arm",
             Target::ArmeabiV7a => "armeabi-v7a",
             Target::Arm64V8a => "arm64-v8a",
             Target::X86 => "x86",
@@ -119,6 +124,7 @@ impl Display for Target {
 impl Target {
     pub fn triple(&self) -> &'static str {
         match self {
+            Target::Armeabi => "arm-linux-androideabi",
             Target::ArmeabiV7a => "armv7-linux-androideabi",
             Target::Arm64V8a => "aarch64-linux-android",
             Target::X86 => "i686-linux-android",
